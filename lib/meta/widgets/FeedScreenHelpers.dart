@@ -1,10 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/services/FirebaseOperations.dart';
+import 'package:thesocial/meta/widgets/FeedPostSheets.dart';
 
 class FeedScreenHelpers extends ChangeNotifier {
   final ConstantColors constantColors = ConstantColors();
@@ -79,7 +85,355 @@ class FeedScreenHelpers extends ChangeNotifier {
   }
 
   Widget feedBody(BuildContext context) {
-    return Text('yooo');
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8.0, bottom: 100),
+        child: Container(
+          padding: const EdgeInsets.only(
+            top: 8.0,
+            left: 8.0,
+            right: 8.0,
+            bottom: 60,
+          ),
+          height: MediaQuery.of(context).size.height * 0.9,
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+              color: constantColors.blueGreyColor,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(15),
+                topRight: Radius.circular(15),
+              )),
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('posts')
+                .orderBy('time', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                    child: SizedBox(
+                  height: 500,
+                  width: 400,
+                  child: Lottie.asset('assets/animations/loading.json'),
+                ));
+              } else {
+                return ListView(
+                  children: snapshot.data.docs
+                      .map<Widget>((DocumentSnapshot documentSnapshot) {
+                    Provider.of<FeedScreenViewModel>(context, listen: false)
+                        .showTimeGo(documentSnapshot.get('time'));
+                    return Container(
+                      margin: EdgeInsets.only(bottom: 40),
+                      //  height: MediaQuery.of(context).size.height * 0.69,
+                      width: MediaQuery.of(context).size.width,
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              GestureDetector(
+                                child: CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                    documentSnapshot.get('userimage'),
+                                  ),
+                                  radius: 20.0,
+                                ),
+                                onTap: () {
+                                  // var uidFromDB =
+                                  //     documentSnapshot.get('useruid');
+                                  // if (uidFromDB !=
+                                  //     Provider.of<Authentication>(context,
+                                  //             listen: false)
+                                  //         .getUserUid) {
+                                  //   Navigator.pushReplacement(
+                                  //       context,
+                                  //       PageTransition(
+                                  //         child: AltProfile(userUid: uidFromDB),
+                                  //         type: PageTransitionType.leftToRight,
+                                  //       ));
+                                  // }
+                                },
+                              ),
+                              SizedBox(width: 10),
+                              Container(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: MediaQuery.of(context).size.width *
+                                          3 /
+                                          4,
+                                      child: Text(
+                                        documentSnapshot.get('caption'),
+                                        overflow: TextOverflow.visible,
+                                        softWrap: true,
+                                        style: TextStyle(
+                                            color: constantColors.whiteColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          documentSnapshot.get('username') +
+                                              ' , ',
+                                          style: TextStyle(
+                                              color: constantColors.blueColor,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          '${Provider.of<FeedScreenViewModel>(context, listen: false).getImageTimePosted.toString()}',
+                                          style: TextStyle(
+                                            color: constantColors.lightColor
+                                                .withOpacity(0.99),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        //Spacer(),
+                                        SizedBox(width: 80),
+                                        Container(
+                                            height: 30,
+                                            width: 60,
+                                            //displaying the rewards
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: FirebaseFirestore.instance
+                                                  .collection('posts')
+                                                  .doc(documentSnapshot
+                                                      .get('caption'))
+                                                  .collection('rewards')
+                                                  .snapshots(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return Center(
+                                                    child:
+                                                        CircularProgressIndicator(),
+                                                  );
+                                                } else {
+                                                  return ListView(
+                                                      scrollDirection:
+                                                          Axis.horizontal,
+                                                      children: snapshot
+                                                          .data.docs
+                                                          .map<Widget>(
+                                                              (DocumentSnapshot
+                                                                  documentSnapshot) {
+                                                        return Container(
+                                                          height: 30,
+                                                          width: 40,
+                                                          child: Image.network(
+                                                            documentSnapshot
+                                                                .get('image'),
+                                                          ),
+                                                        );
+                                                      }).toList());
+                                                }
+                                              },
+                                            ))
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                          //displaying the post image
+                          Container(
+                            height: MediaQuery.of(context).size.height * 0.46,
+                            width: MediaQuery.of(context).size.width,
+                            child: FittedBox(
+                              fit: BoxFit.fill,
+                              child: Image.network(
+                                documentSnapshot.get('postimage'),
+                                scale: 2,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          //row of button for like,comment,reward
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    child: Icon(
+                                      FontAwesomeIcons.heart,
+                                      color: constantColors.redColor,
+                                    ),
+                                    onTap: () async {
+                                      await Provider.of<FeedScreenViewModel>(
+                                              context,
+                                              listen: false)
+                                          .addLike(context, documentSnapshot);
+                                      // print('adding like...');
+                                      // Provider.of<FirebaseOperations>(
+                                      //   context,
+                                      //   listen: false,
+                                      // )
+                                      //     .addLike(
+                                      //   context,
+                                      //   documentSnapshot.get('caption'),
+                                      //   Provider.of<Authentication>(
+                                      //     context,
+                                      //     listen: false,
+                                      //   ).getUserUid,
+                                      // )
+                                      //     .whenComplete(() {
+                                      //   likeSheet(context, documentSnapshot);
+                                      // });
+                                    },
+                                  ),
+                                  SizedBox(width: 7),
+                                  //number of likes
+                                  StreamBuilder<QuerySnapshot>(
+                                      stream: Provider.of<FeedScreenViewModel>(
+                                              context,
+                                              listen: true)
+                                          .getLikesForPost(context,
+                                              documentSnapshot.get('caption')),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else {
+                                          return Text(
+                                            snapshot.data.docs.length
+                                                .toString(),
+                                            style: TextStyle(
+                                              color: constantColors.whiteColor,
+                                            ),
+                                          );
+                                        }
+                                      }),
+                                ],
+                              ),
+                              SizedBox(width: 15),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    child: Icon(
+                                      FontAwesomeIcons.comment,
+                                      color: constantColors.blueColor,
+                                    ),
+                                    onTap: () {
+                                      Provider.of<FeedPostSheets>(context,
+                                              listen: false)
+                                          .commentSheet(
+                                              context,
+                                              documentSnapshot,
+                                              documentSnapshot.get('caption'));
+                                    },
+                                  ),
+                                  SizedBox(width: 7),
+                                  //number of comments
+                                  StreamBuilder(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('posts')
+                                          .doc(documentSnapshot.get('caption'))
+                                          .collection('comments')
+                                          .snapshots(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else {
+                                          return Text(
+                                            snapshot.data.docs.length
+                                                .toString(),
+                                            style: TextStyle(
+                                                color:
+                                                    constantColors.whiteColor),
+                                          );
+                                        }
+                                      }),
+                                ],
+                              ),
+                              SizedBox(width: 15),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    child: Icon(
+                                      FontAwesomeIcons.award,
+                                      color: constantColors.yellowColor,
+                                    ),
+                                    onTap: () {
+                                      Provider.of<FeedPostSheets>(context,
+                                              listen: false)
+                                          .rewardSheet(context,
+                                              documentSnapshot.get('caption'));
+                                    },
+                                  ),
+                                  SizedBox(width: 7),
+                                  StreamBuilder(
+                                      stream: Provider.of<FeedScreenViewModel>(
+                                              context,
+                                              listen: false)
+                                          .getRewardLengthForPost(
+                                        documentSnapshot.get('caption'),
+                                      ),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else {
+                                          return Text(
+                                            snapshot.data.docs.length
+                                                .toString(),
+                                            style: TextStyle(
+                                                color:
+                                                    constantColors.whiteColor),
+                                          );
+                                        }
+                                      }),
+                                ],
+                              ),
+                              Spacer(),
+                              //conditional tree dots
+                              documentSnapshot.get('useruid') ==
+                                      Provider.of<FeedScreenViewModel>(context)
+                                          .getUserUid
+                                  ? IconButton(
+                                      icon: Icon(EvaIcons.moreVertical),
+                                      color: constantColors.whiteColor,
+                                      onPressed: () {
+                                        // Provider.of<PostOptions>(context,
+                                        //         listen: false)
+                                        //     .showPostOptions(
+                                        //         context,
+                                        //         documentSnapshot
+                                        //             .get('caption'));
+                                      },
+                                    )
+                                  : Container(
+                                      height: 0,
+                                      width: 0,
+                                    )
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                );
+              }
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   Future showPostImage(BuildContext context) {
@@ -146,16 +500,10 @@ class FeedScreenHelpers extends ChangeNotifier {
                             ),
                           ),
                           onPressed: () async {
-                            print('1');
                             await Provider.of<FeedScreenViewModel>(context,
                                     listen: false)
                                 .uploadImageToFirebase(context);
-                            print('5');
-                            print('URRRL' +
-                                Provider.of<FeedScreenViewModel>(context,
-                                        listen: false)
-                                    .getPostImageUrl
-                                    .toString());
+                            editPostSheet(context);
                           },
                         ),
                       ],
@@ -283,33 +631,25 @@ class FeedScreenHelpers extends ChangeNotifier {
                       if (!formKey.currentState.validate()) {
                         return;
                       }
-                      // Provider.of<FeedScreenViewModel>(context,listen: false).addPostData(context,_captionController.text, username, useruid, time, userimage, postimage)
-
-                      // Provider.of<FirebaseOperations>(context, listen: false)
-                      //     .addPostData(_captionController.text, {
-                      //   'caption': _captionController.text,
-                      //   'username': Provider.of<FirebaseOperations>(context,
-                      //           listen: false)
-                      //       .getUserName,
-                      //   'useremail': Provider.of<FirebaseOperations>(context,
-                      //           listen: false)
-                      //       .getUserEmail,
-                      //   'useruid':
-                      //       Provider.of<Authentication>(context, listen: false)
-                      //           .getUserUid,
-                      //   'time': Timestamp.now(),
-                      //   'userimage': Provider.of<FirebaseOperations>(context,
-                      //           listen: false)
-                      //       .getUserImage,
-                      //   'postimage':
-                      //       Provider.of<FeedUtils>(context, listen: false)
-                      //           .getPostImageUrl,
-                      // }).whenComplete(() {
-                      //   print('post data added');
-                      //   Navigator.pop(context);
-                      //   Navigator.pop(context);
-                      //   Navigator.pop(context);
-                      // });
+                      Provider.of<FeedScreenViewModel>(context, listen: false)
+                          .addPostData(
+                        context,
+                        {
+                          'caption': _captionController.text,
+                          'username': Provider.of<FeedScreenViewModel>(context,
+                                  listen: false)
+                              .getUserName,
+                          'useruid': Provider.of<FeedScreenViewModel>(context,
+                                  listen: false)
+                              .getUserUid,
+                          'userimage': Provider.of<FeedScreenViewModel>(context,
+                                  listen: false)
+                              .getUserImage,
+                          'postimage': Provider.of<FeedScreenViewModel>(context,
+                                  listen: false)
+                              .getPostImageUrl
+                        },
+                      );
                     })
               ],
             ),

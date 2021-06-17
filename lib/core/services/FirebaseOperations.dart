@@ -9,16 +9,14 @@ import 'package:sailor/sailor.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/app/routes.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/models/Comment.dart';
+import 'package:thesocial/core/models/Like.dart';
+import 'package:thesocial/core/models/Post.dart';
+import 'package:thesocial/core/models/User.dart';
 
 class FirebaseOperations extends ChangeNotifier {
   ConstantColors constantColors = ConstantColors();
   String errorMsg;
-  String useremail;
-  String username;
-  String userimage;
-  String get getUserName => username;
-  String get getUserEmail => useremail;
-  String get getUserImage => userimage;
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore instance = FirebaseFirestore.instance;
@@ -27,11 +25,47 @@ class FirebaseOperations extends ChangeNotifier {
   }
 
   Stream getFollowers(BuildContext context) {
-    return FirebaseFirestore.instance
+    return instance
         .collection('users')
         .doc(
             Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid)
         .collection('followers')
+        .snapshots();
+  }
+
+  Stream getFollowings(BuildContext context) {
+    return instance
+        .collection('users')
+        .doc(
+            Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid)
+        .collection('followings')
+        .snapshots();
+  }
+
+  Stream getLikesForPost(BuildContext context, String caption) {
+    print(caption);
+    return instance
+        .collection('posts')
+        .doc(caption)
+        .collection('likes')
+        .snapshots();
+  }
+
+  Stream followingStatus(BuildContext context, String userUid) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(userUid)
+        .collection('followers')
+        .doc(
+            Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid)
+        .snapshots();
+  }
+
+  Stream getRewardLengthForPost(String caption) {
+    return instance
+        .collection('posts')
+        .doc(caption)
+        .collection('rewards')
         .snapshots();
   }
 
@@ -112,9 +146,24 @@ class FirebaseOperations extends ChangeNotifier {
     String url = await imageReference.getDownloadURL();
     //print('urloo' + url);
     Provider.of<FeedScreenViewModel>(context, listen: false).postImageUrl = url;
+    Navigator.pop(context);
   }
 
-  Future addPostData(BuildContext context) async {}
+  Future addPostData(BuildContext context, dynamic postData) async {
+    Post newPost = Post(
+      caption: postData['caption'],
+      username: postData['username'],
+      useruid: postData['useruid'],
+      userimage: postData['userimage'],
+      postimage: postData['postimage'],
+    );
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postData['caption'])
+        .set(newPost.toMap());
+    Navigator.pop(context);
+    Navigator.pop(context);
+  }
 
   Future fetchUserProfileInfo(BuildContext context) async {
     var doc = await FirebaseFirestore.instance
@@ -128,5 +177,117 @@ class FirebaseOperations extends ChangeNotifier {
     Provider.of<FeedScreenViewModel>(context, listen: false).userimage =
         doc.get('userimage');
     notifyListeners();
+  }
+
+  Future logoutViaEmail(BuildContext context) async {
+    await firebaseAuth.signOut();
+    Routes.sailor.navigate(
+      "/LandingPage",
+      transitions: [SailorTransition.slide_from_left],
+      transitionDuration: Duration(milliseconds: 600),
+      transitionCurve: Curves.easeOut,
+    );
+  }
+
+  Future addLike(BuildContext context, String caption) async {
+    var uid =
+        Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid;
+    Like newLike = Like(
+      likes: FieldValue.increment(1),
+      username:
+          Provider.of<FeedScreenViewModel>(context, listen: false).getUserName,
+      useruid:
+          Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid,
+      userimage:
+          Provider.of<FeedScreenViewModel>(context, listen: false).getUserImage,
+      useremail:
+          Provider.of<FeedScreenViewModel>(context, listen: false).getUserEmail,
+    );
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(caption)
+        .collection('likes')
+        .doc(uid)
+        .set(newLike.toMap());
+  }
+
+  Future addComment(
+      BuildContext context,
+      String caption,
+      String comment,
+      String useruid,
+      String username,
+      String userimage,
+      String useremail,
+      TextEditingController _commentController) async {
+    Comment newComment = Comment(
+      comment: comment,
+      username: username,
+      useruid: useruid,
+      userimage: userimage,
+      useremail: useremail,
+    );
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(caption)
+        .collection('comments')
+        .doc(comment)
+        .set(newComment.toMap());
+
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.unfocus();
+    }
+    _commentController.clear();
+  }
+
+  Future addReward(BuildContext context, String rewardUrl, String caption,
+      String useruid) async {
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(caption)
+        .collection('rewards')
+        .doc(useruid)
+        .set({'image': rewardUrl});
+  }
+
+  Future followUser(
+    BuildContext context,
+    dynamic snapshot,
+    String followingUid,
+  ) async {
+    var getDataMethod;
+    FeedScreenViewModel provider =
+        Provider.of<FeedScreenViewModel>(context, listen: false);
+    snapshot.runtimeType.toString() != 'QueryDocumentSnapshot'
+        ? getDataMethod = snapshot.data
+        : getDataMethod = snapshot;
+    Userm followerData = Userm(
+      username: provider.getUserName,
+      useremail: provider.getUserEmail,
+      userimage: provider.getUserImage,
+      useruid: provider.getUserUid,
+    );
+    Userm followingData = Userm(
+      username: getDataMethod.get('username'),
+      useremail: getDataMethod.get('useremail'),
+      userimage: getDataMethod.get('userimage'),
+      useruid: getDataMethod.get('useruid'),
+    );
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(followingUid)
+        .collection('followers')
+        .doc(provider.getUserUid)
+        .set(followerData.toMap());
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(provider.getUserUid)
+        .collection('followings')
+        .doc(followingUid)
+        .set(followingData.toMap());
+
+    print('followed!!!');
   }
 }

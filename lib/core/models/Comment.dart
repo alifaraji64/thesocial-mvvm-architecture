@@ -2,30 +2,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class Post {
-  String caption;
+class Comment {
+  String comment;
   String username;
   String useruid;
   Timestamp time = Timestamp.now();
   String userimage;
-  String postimage;
+  String useremail;
 
-  Post({
-    @required this.caption,
+  Comment({
+    @required this.comment,
     @required this.username,
     @required this.useruid,
     @required this.userimage,
-    @required this.postimage,
+    @required this.useremail,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'caption': this.caption,
+      'comment': this.comment,
       'username': this.username,
       'useruid': this.useruid,
-      'time': this.time,
       'userimage': this.userimage,
-      'postimage': this.postimage
+      'useremail': this.useremail,
+      'time': this.time
     };
   }
 }

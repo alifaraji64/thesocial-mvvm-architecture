@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:thesocial/core/services/FirebaseOperations.dart';
 
@@ -7,5 +6,13 @@ class ProfileScreenViewModel extends ChangeNotifier {
 
   Stream getFollowers(BuildContext context) {
     return firebaseOperations.getFollowers(context);
+  }
+
+  Stream getFollowings(BuildContext context) {
+    return firebaseOperations.getFollowings(context);
+  }
+
+  Future logoutViaEmail(BuildContext context) async {
+    await firebaseOperations.logoutViaEmail(context);
   }
 }

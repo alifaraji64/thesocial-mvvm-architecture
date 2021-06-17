@@ -6,8 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/core/services/FirebaseOperations.dart';
 import 'package:thesocial/core/services/UploadImage.dart';
+import 'package:thesocial/meta/widgets/FeedPostSheets.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class FeedScreenViewModel extends ChangeNotifier {
+  FirebaseOperations firebaseOperations = FirebaseOperations();
   File postImage;
   File get getPostImage => postImage;
   String postImageUrl;
@@ -20,6 +23,20 @@ class FeedScreenViewModel extends ChangeNotifier {
   String get getUserEmail => useremail;
   String userimage;
   String get getUserImage => userimage;
+  String imageTimePosted;
+  String get getImageTimePosted => imageTimePosted;
+
+  Stream getLikesForPost(BuildContext context, String caption) {
+    return firebaseOperations.getLikesForPost(context, caption);
+  }
+
+  Stream followingStatus(BuildContext context, String useruid) {
+    return firebaseOperations.followingStatus(context, useruid);
+  }
+
+  Stream getRewardLengthForPost(String caption) {
+    return firebaseOperations.getRewardLengthForPost(caption);
+  }
 
   Future pickPostImage(BuildContext context, ImageSource source) async {
     Provider.of<UploadImage>(context, listen: false).postImage = null;
@@ -28,12 +45,9 @@ class FeedScreenViewModel extends ChangeNotifier {
   }
 
   Future uploadImageToFirebase(BuildContext context) async {
-    print('2');
     if (getPostImage != null) {
-      print('from in vm');
       await Provider.of<FirebaseOperations>(context, listen: false)
           .uploadPostImageToFirebase(context);
-      print('4');
     }
   }
 
@@ -46,6 +60,54 @@ class FeedScreenViewModel extends ChangeNotifier {
     return null;
   }
 
-  Future addPostData(BuildContext context, caption, username, useruid, time,
-      userimage, postimage) {}
+  Future addPostData(BuildContext context, dynamic postData) async {
+    await Provider.of<FirebaseOperations>(context, listen: false)
+        .addPostData(context, postData);
+  }
+
+  void showTimeGo(dynamic timedata) {
+    Timestamp time = timedata;
+    DateTime dateTime = time.toDate();
+    imageTimePosted = timeago.format(dateTime);
+    print(imageTimePosted);
+    //notifyListeners();
+  }
+
+  Future addLike(
+      BuildContext context, DocumentSnapshot documentSnapshot) async {
+    await firebaseOperations.addLike(context, documentSnapshot.get('caption'));
+    Provider.of<FeedPostSheets>(context, listen: false)
+        .likeSheet(context, documentSnapshot);
+  }
+
+  Future addComment(BuildContext context, String caption, String comment,
+      TextEditingController _commentController) async {
+    await firebaseOperations.addComment(
+        context,
+        caption,
+        comment,
+        this.getUserUid,
+        this.username,
+        this.userimage,
+        this.useremail,
+        _commentController);
+  }
+
+  Future addReward(
+      BuildContext context, String rewardUrl, String postId) async {
+    await firebaseOperations.addReward(
+      context,
+      rewardUrl,
+      postId,
+      this.getUserUid,
+    );
+  }
+
+  Future followUser(
+    BuildContext context,
+    dynamic snapshot,
+    String followingUid,
+  ) async {
+    await firebaseOperations.followUser(context, snapshot, followingUid);
+  }
 }

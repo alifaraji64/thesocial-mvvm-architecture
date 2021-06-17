@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/ProfileScreenViewModel.dart';
+import 'package:thesocial/meta/widgets/Globalwidgets.dart';
 import 'package:thesocial/meta/widgets/ProfileScreenHelpers.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -31,8 +32,8 @@ class ProfileScreen extends StatelessWidget {
                 color: constantColors.greenColor,
               ),
               onPressed: () {
-                // Provider.of<ProfileScreenHelpers>(context, listen: false)
-                //     .logoutDialog(context);
+                Provider.of<ProfileScreenHelpers>(context, listen: false)
+                    .logoutDialog(context);
               },
             )
           ],
@@ -78,17 +79,16 @@ class ProfileScreen extends StatelessWidget {
                         Provider.of<ProfileScreenHelpers>(context,
                                 listen: false)
                             .headerProfile(context, snapshot),
-                        // Provider.of<ProfileHelpers>(context, listen: false)
-                        //     .divider(context),
-                        // Provider.of<ProfileHelpers>(context, listen: false)
-                        //     .middleProfile(context, snapshot),
-                        // SizedBox(height: 10),
-                        // Provider.of<ProfileHelpers>(context, listen: false)
-                        //     .footerProfile(
-                        //   context,
-                        //   Provider.of<Authentication>(context, listen: false)
-                        //       .getUserUid,
-                        // ),
+                        Provider.of<ProfileScreenHelpers>(context,
+                                listen: false)
+                            .divider(context),
+                        SizedBox(height: 10),
+                        Provider.of<GlobalWidgets>(context, listen: false)
+                            .postGrid(
+                                context,
+                                Provider.of<FeedScreenViewModel>(context,
+                                        listen: false)
+                                    .getUserUid)
                       ],
                     );
                   }

@@ -5,6 +5,7 @@ import 'package:thesocial/core/ViewModels/LandingPageViewModel.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/core/ViewModels/ProfileScreenViewModel.dart';
 import 'package:thesocial/core/services/UploadImage.dart';
+import 'package:thesocial/meta/widgets/FeedPostSheets.dart';
 import 'package:thesocial/meta/widgets/Globalwidgets.dart';
 import 'package:thesocial/meta/widgets/LandingPageHelpers.dart';
 import 'package:get/get.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => FeedPostSheets()),
         ChangeNotifierProvider(create: (_) => GlobalWidgets()),
         ChangeNotifierProvider(create: (_) => ProfileScreenViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileScreenHelpers()),
