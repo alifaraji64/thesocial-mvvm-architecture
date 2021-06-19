@@ -9,6 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 import 'package:thesocial/core/services/FirebaseOperations.dart';
 import 'package:thesocial/meta/widgets/FeedPostSheets.dart';
 
@@ -138,19 +139,11 @@ class FeedScreenHelpers extends ChangeNotifier {
                                   radius: 20.0,
                                 ),
                                 onTap: () {
-                                  // var uidFromDB =
-                                  //     documentSnapshot.get('useruid');
-                                  // if (uidFromDB !=
-                                  //     Provider.of<Authentication>(context,
-                                  //             listen: false)
-                                  //         .getUserUid) {
-                                  //   Navigator.pushReplacement(
-                                  //       context,
-                                  //       PageTransition(
-                                  //         child: AltProfile(userUid: uidFromDB),
-                                  //         type: PageTransitionType.leftToRight,
-                                  //       ));
-                                  // }
+                                  Provider.of<GlobalViewModel>(
+                                    context,
+                                    listen: false,
+                                  ).redirect(context, '/altProfile',
+                                      uid: documentSnapshot.get('useruid'));
                                 },
                               ),
                               SizedBox(width: 10),
@@ -272,22 +265,6 @@ class FeedScreenHelpers extends ChangeNotifier {
                                               context,
                                               listen: false)
                                           .addLike(context, documentSnapshot);
-                                      // print('adding like...');
-                                      // Provider.of<FirebaseOperations>(
-                                      //   context,
-                                      //   listen: false,
-                                      // )
-                                      //     .addLike(
-                                      //   context,
-                                      //   documentSnapshot.get('caption'),
-                                      //   Provider.of<Authentication>(
-                                      //     context,
-                                      //     listen: false,
-                                      //   ).getUserUid,
-                                      // )
-                                      //     .whenComplete(() {
-                                      //   likeSheet(context, documentSnapshot);
-                                      // });
                                     },
                                   ),
                                   SizedBox(width: 7),
@@ -402,21 +379,22 @@ class FeedScreenHelpers extends ChangeNotifier {
                               ),
                               Spacer(),
                               //conditional tree dots
-                              documentSnapshot.get('useruid') ==
-                                      Provider.of<FeedScreenViewModel>(context)
-                                          .getUserUid
+                              //check if the uid of the post is the same as logged-in uid
+                              Provider.of<FeedScreenViewModel>(context,
+                                          listen: false)
+                                      .postUidAndUserUidEquality(
+                                          documentSnapshot.get('useruid'))
                                   ? IconButton(
-                                      icon: Icon(EvaIcons.moreVertical),
-                                      color: constantColors.whiteColor,
+                                      icon: Icon(
+                                        EvaIcons.moreVertical,
+                                        color: constantColors.whiteColor,
+                                      ),
                                       onPressed: () {
-                                        // Provider.of<PostOptions>(context,
-                                        //         listen: false)
-                                        //     .showPostOptions(
-                                        //         context,
-                                        //         documentSnapshot
-                                        //             .get('caption'));
-                                      },
-                                    )
+                                        showPostOptions(
+                                          context,
+                                          documentSnapshot.get('caption'),
+                                        );
+                                      })
                                   : Container(
                                       height: 0,
                                       width: 0,
@@ -653,6 +631,55 @@ class FeedScreenHelpers extends ChangeNotifier {
                     })
               ],
             ),
+          );
+        });
+  }
+
+  Future showPostOptions(BuildContext context, String caption) {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: constantColors.darkColor,
+            title: Text(
+              'you want to delete this post?',
+              style: TextStyle(
+                color: constantColors.whiteColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  MaterialButton(
+                      child: Text('No',
+                          style: TextStyle(
+                            color: constantColors.whiteColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          )),
+                      onPressed: () {
+                        Provider.of<GlobalViewModel>(context, listen: false)
+                            .goBack();
+                      }),
+                  MaterialButton(
+                      color: constantColors.redColor,
+                      child: Text('Yes',
+                          style: TextStyle(
+                            color: constantColors.whiteColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          )),
+                      onPressed: () {
+                        Provider.of<FeedScreenViewModel>(context, listen: false)
+                            .deletePost(context, caption);
+                      }),
+                ],
+              )
+            ],
           );
         });
   }

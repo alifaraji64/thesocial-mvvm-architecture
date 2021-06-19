@@ -106,7 +106,7 @@ class ProfileScreenHelpers extends ChangeNotifier {
                     //getting the number of followings
                     StreamBuilder<QuerySnapshot>(
                         stream: Provider.of<ProfileScreenViewModel>(context,
-                                listen: true)
+                                listen: false)
                             .getFollowings(context),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==

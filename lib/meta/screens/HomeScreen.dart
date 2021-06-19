@@ -1,6 +1,8 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
+import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
 import 'package:thesocial/meta/screens/ChatListScreen.dart';
 import 'package:thesocial/meta/screens/FeedScreen.dart';
 import 'package:thesocial/meta/screens/ProfileScreen.dart';
@@ -47,7 +49,21 @@ class _HomePageState extends State<HomeScreen> {
           items: [
             CustomNavigationBarItem(icon: Icon(EvaIcons.home)),
             CustomNavigationBarItem(icon: Icon(Icons.message_rounded)),
-            CustomNavigationBarItem(icon: Icon(Icons.message_rounded)),
+            CustomNavigationBarItem(
+                icon: CircleAvatar(
+              backgroundImage: Provider.of<FeedScreenViewModel>(
+                        context,
+                        listen: false,
+                      ).getUserImage !=
+                      null
+                  ? NetworkImage(
+                      Provider.of<FeedScreenViewModel>(
+                        context,
+                        listen: false,
+                      ).getUserImage,
+                    )
+                  : null,
+            )),
           ],
         ));
   }

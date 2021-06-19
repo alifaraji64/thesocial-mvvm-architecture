@@ -9,6 +9,7 @@ import 'package:sailor/sailor.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/app/routes.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 import 'package:thesocial/core/models/Comment.dart';
 import 'package:thesocial/core/models/Like.dart';
 import 'package:thesocial/core/models/Post.dart';
@@ -24,20 +25,29 @@ class FirebaseOperations extends ChangeNotifier {
     return instance.collection('users').snapshots();
   }
 
-  Stream getFollowers(BuildContext context) {
+  Stream getFollowers(BuildContext context, [String altProfileUid]) {
+    //print('this is alt UID: ' + altProfileUid);
     return instance
         .collection('users')
         .doc(
-            Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid)
+          altProfileUid == null
+              ? Provider.of<FeedScreenViewModel>(context, listen: false)
+                  .getUserUid
+              : altProfileUid,
+        )
         .collection('followers')
         .snapshots();
   }
 
-  Stream getFollowings(BuildContext context) {
+  Stream getFollowings(BuildContext context, [String altProfileUid]) {
     return instance
         .collection('users')
         .doc(
-            Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid)
+          altProfileUid == null
+              ? Provider.of<FeedScreenViewModel>(context, listen: false)
+                  .getUserUid
+              : altProfileUid,
+        )
         .collection('followings')
         .snapshots();
   }
@@ -66,6 +76,15 @@ class FirebaseOperations extends ChangeNotifier {
         .collection('posts')
         .doc(caption)
         .collection('rewards')
+        .snapshots();
+  }
+
+  Stream getComments(caption) {
+    return FirebaseFirestore.instance
+        .collection('posts')
+        .doc(caption)
+        .collection('comments')
+        .orderBy('time')
         .snapshots();
   }
 
@@ -259,7 +278,8 @@ class FirebaseOperations extends ChangeNotifier {
     var getDataMethod;
     FeedScreenViewModel provider =
         Provider.of<FeedScreenViewModel>(context, listen: false);
-    snapshot.runtimeType.toString() != 'QueryDocumentSnapshot'
+    String snapShotType = snapshot.runtimeType.toString();
+    snapShotType != 'QueryDocumentSnapshot'
         ? getDataMethod = snapshot.data
         : getDataMethod = snapshot;
     Userm followerData = Userm(
@@ -287,7 +307,60 @@ class FirebaseOperations extends ChangeNotifier {
         .collection('followings')
         .doc(followingUid)
         .set(followingData.toMap());
-
+    showSnackBar(
+      context,
+      '${snapShotType == "_JsonQueryDocumentSnapshot" || snapShotType == "QueryDocumentSnapshot" ? snapshot.get("username") : snapshot.data.get("username")} has been followed',
+      constantColors.darkColor,
+      constantColors.yellowColor,
+    );
     print('followed!!!');
+  }
+
+  Future unfollowUser(BuildContext context, dynamic snapshot,
+      String unfollowingUid, String beingUnfollowed) async {
+    String snapShotType = snapshot.runtimeType.toString();
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(beingUnfollowed)
+        .collection('followers')
+        .doc(unfollowingUid)
+        .delete();
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(unfollowingUid)
+        .collection('followings')
+        .doc(beingUnfollowed)
+        .delete();
+
+    showSnackBar(
+      context,
+      '${snapShotType == "_JsonQueryDocumentSnapshot" || snapShotType == "QueryDocumentSnapshot" ? snapshot.get("username") : snapshot.data.get("username")} has been Unfollowed',
+      constantColors.whiteColor,
+      constantColors.redColor,
+    );
+  }
+
+  dynamic showSnackBar(
+      BuildContext context, String content, Color textColor, Color bgColor) {
+    return ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: bgColor,
+        duration: Duration(seconds: 1),
+        content: Text(
+          '$content',
+          style: TextStyle(
+            color: textColor,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future deletePost(BuildContext context, String caption) async {
+    await instance.collection('posts').doc(caption).delete();
+    Provider.of<GlobalViewModel>(context, listen: false).goBack();
   }
 }

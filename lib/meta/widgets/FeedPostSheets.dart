@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 import 'package:thesocial/meta/widgets/Globalwidgets.dart';
 
 class FeedPostSheets extends ChangeNotifier {
@@ -37,12 +38,9 @@ class FeedPostSheets extends ChangeNotifier {
                 ),
                 Container(
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('posts')
-                        .doc(docId)
-                        .collection('comments')
-                        .orderBy('time')
-                        .snapshots(),
+                    stream:
+                        Provider.of<FeedScreenViewModel>(context, listen: false)
+                            .getComments(docId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(
@@ -75,24 +73,15 @@ class FeedPostSheets extends ChangeNotifier {
                                             radius: 15,
                                           ),
                                           onTap: () {
-                                            // if (documentSnapshot
-                                            //         .get('useruid') !=
-                                            //     Provider.of<Authentication>(
-                                            //             context,
-                                            //             listen: false)
-                                            //         .getUserUid) {
-                                            //   Navigator.pushReplacement(
-                                            //       context,
-                                            //       PageTransition(
-                                            //         child: AltProfile(
-                                            //           userUid: documentSnapshot
-                                            //               .get('useruid'),
-                                            //         ),
-                                            //         type: PageTransitionType
-                                            //             .leftToRight,
-                                            //       ));
-                                            // }
-                                            // return;
+                                            Provider.of<GlobalViewModel>(
+                                              context,
+                                              listen: false,
+                                            ).redirect(
+                                              context,
+                                              '/altProfile',
+                                              uid: documentSnapshot
+                                                  .get('useruid'),
+                                            );
                                           },
                                         ),
                                         SizedBox(width: 10),
@@ -262,6 +251,15 @@ class FeedPostSheets extends ChangeNotifier {
                                           ),
                                           onTap: () {
                                             //redirect to alt profile
+                                            Provider.of<GlobalViewModel>(
+                                              context,
+                                              listen: false,
+                                            ).redirect(
+                                              context,
+                                              '/altProfile',
+                                              uid: documentSnapshot
+                                                  .get('useruid'),
+                                            );
                                           },
                                         ),
                                         SizedBox(width: 10),

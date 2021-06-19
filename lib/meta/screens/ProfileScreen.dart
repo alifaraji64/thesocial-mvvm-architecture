@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
-import 'package:thesocial/core/ViewModels/ProfileScreenViewModel.dart';
 import 'package:thesocial/meta/widgets/Globalwidgets.dart';
 import 'package:thesocial/meta/widgets/ProfileScreenHelpers.dart';
 

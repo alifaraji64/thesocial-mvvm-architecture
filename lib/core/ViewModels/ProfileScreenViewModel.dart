@@ -12,6 +12,10 @@ class ProfileScreenViewModel extends ChangeNotifier {
     return firebaseOperations.getFollowings(context);
   }
 
+  Future fetchUserProfileInfo(BuildContext context) {
+    return firebaseOperations.fetchUserProfileInfo(context);
+  }
+
   Future logoutViaEmail(BuildContext context) async {
     await firebaseOperations.logoutViaEmail(context);
   }

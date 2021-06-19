@@ -38,6 +38,10 @@ class FeedScreenViewModel extends ChangeNotifier {
     return firebaseOperations.getRewardLengthForPost(caption);
   }
 
+  Stream getComments(String caption) {
+    return firebaseOperations.getComments(caption);
+  }
+
   Future pickPostImage(BuildContext context, ImageSource source) async {
     Provider.of<UploadImage>(context, listen: false).postImage = null;
     await Provider.of<UploadImage>(context, listen: false)
@@ -109,5 +113,20 @@ class FeedScreenViewModel extends ChangeNotifier {
     String followingUid,
   ) async {
     await firebaseOperations.followUser(context, snapshot, followingUid);
+  }
+
+  Future unfollowUser(
+      String beingUnfollowed, BuildContext context, dynamic snapshot) async {
+    await firebaseOperations.unfollowUser(
+        context, snapshot, this.getUserUid, beingUnfollowed);
+  }
+
+  bool postUidAndUserUidEquality(postUid) {
+    if (postUid == this.getUserUid) return true;
+    return false;
+  }
+
+  Future deletePost(BuildContext context, String caption) async {
+    await firebaseOperations.deletePost(context, caption);
   }
 }
