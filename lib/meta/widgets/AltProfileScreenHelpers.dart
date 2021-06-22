@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/AltProfileScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 import 'package:thesocial/meta/widgets/Globalwidgets.dart';
 
 class AltProfileScreenHelpers extends ChangeNotifier {
@@ -96,9 +98,9 @@ class AltProfileScreenHelpers extends ChangeNotifier {
                                       .profileDetailBox('Followers',
                                           snapshot.data.docs.length.toString()),
                                   onTap: () {
-                                    // Provider.of<GlobalWidgets>(context,
-                                    //         listen: false)
-                                    //     .showFollowingsSheet(context, snapshot);
+                                    Provider.of<GlobalWidgets>(context,
+                                            listen: false)
+                                        .showFollowingsSheet(context, snapshot);
                                   },
                                 );
                               }
@@ -125,9 +127,9 @@ class AltProfileScreenHelpers extends ChangeNotifier {
                                       .profileDetailBox('Followings',
                                           snapshot.data.docs.length.toString()),
                                   onTap: () {
-                                    // Provider.of<GlobalWidgets>(context,
-                                    //         listen: false)
-                                    //     .showFollowingsSheet(context, snapshot);
+                                    Provider.of<GlobalWidgets>(context,
+                                            listen: false)
+                                        .showFollowingsSheet(context, snapshot);
                                   },
                                 );
                               }
@@ -167,7 +169,18 @@ class AltProfileScreenHelpers extends ChangeNotifier {
                       fontWeight: FontWeight.bold,
                       fontSize: 12),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Provider.of<GlobalViewModel>(context, listen: false).redirect(
+                    context,
+                    '/chatScreen',
+                    uid: uid,
+                    username: snapshot.data.get('username'),
+                    profileImage: snapshot.data.get('userimage'),
+                    myUid:
+                        Provider.of<FeedScreenViewModel>(context, listen: false)
+                            .getUserUid,
+                  );
+                },
               ),
             ],
           )

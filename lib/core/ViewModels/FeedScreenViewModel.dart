@@ -13,6 +13,10 @@ class FeedScreenViewModel extends ChangeNotifier {
   FirebaseOperations firebaseOperations = FirebaseOperations();
   File postImage;
   File get getPostImage => postImage;
+  File avatarImage;
+  File get getAvatarImage => avatarImage;
+  String avatarUrl;
+  String get getAvatarUrl => avatarUrl;
   String postImageUrl;
   String get getPostImageUrl => postImageUrl;
   String useruid;
@@ -44,15 +48,22 @@ class FeedScreenViewModel extends ChangeNotifier {
 
   Future pickPostImage(BuildContext context, ImageSource source) async {
     Provider.of<UploadImage>(context, listen: false).postImage = null;
+    Provider.of<UploadImage>(context, listen: false).avatarImage = null;
     await Provider.of<UploadImage>(context, listen: false)
         .pickPostImage(context, source);
   }
 
-  Future uploadImageToFirebase(BuildContext context) async {
-    if (getPostImage != null) {
-      await Provider.of<FirebaseOperations>(context, listen: false)
-          .uploadPostImageToFirebase(context);
-    }
+  Future pickUserAvatar(BuildContext context, ImageSource source) async {
+    Provider.of<UploadImage>(context, listen: false).avatarImage = null;
+    Provider.of<UploadImage>(context, listen: false).postImage = null;
+    await Provider.of<UploadImage>(context, listen: false)
+        .pickAvatarImage(context, source);
+    notifyListeners();
+  }
+
+  Future uploadImageToFirebase(BuildContext context, String useCase) async {
+    await Provider.of<FirebaseOperations>(context, listen: false)
+        .uploadPostImageToFirebase(context, useCase);
   }
 
   String captionValidator(value) {

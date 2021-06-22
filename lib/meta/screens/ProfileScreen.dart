@@ -60,8 +60,8 @@ class ProfileScreen extends StatelessWidget {
               height: MediaQuery.of(context).size.height * 1.3,
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15.0),
-                  color: constantColors.blueGreyColor.withOpacity(0.6)),
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: constantColors.blueGreyColor),
               child: StreamBuilder<DocumentSnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('users')

@@ -9,6 +9,8 @@ class UploadImage extends ChangeNotifier {
   final picker = ImagePicker();
   File postImage;
   File get getPostImage => postImage;
+  File avatarImage;
+  File get getAvatarImage => avatarImage;
 
   Future pickPostImage(BuildContext context, ImageSource source) async {
     PickedFile pickedPostImage = await picker.getImage(source: source);
@@ -20,6 +22,21 @@ class UploadImage extends ChangeNotifier {
 
     Provider.of<FeedScreenViewModel>(context, listen: false).postImage =
         getPostImage;
+    print('this is newly selected user post' + pickedPostImage.path ?? '');
+
+    notifyListeners();
+  }
+
+  Future pickAvatarImage(BuildContext context, ImageSource source) async {
+    PickedFile pickedPostImage = await picker.getImage(source: source);
+
+    pickedPostImage == null
+        // ignore: unnecessary_statements
+        ? 'error occured'
+        : avatarImage = File(pickedPostImage.path);
+
+    Provider.of<FeedScreenViewModel>(context, listen: false).avatarImage =
+        getAvatarImage;
     print('this is newly selected user post' + pickedPostImage.path ?? '');
 
     notifyListeners();

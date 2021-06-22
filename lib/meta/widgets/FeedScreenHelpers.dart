@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
 import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
-import 'package:thesocial/core/services/FirebaseOperations.dart';
 import 'package:thesocial/meta/widgets/FeedPostSheets.dart';
 
 class FeedScreenHelpers extends ChangeNotifier {
@@ -50,16 +49,9 @@ class FeedScreenHelpers extends ChangeNotifier {
                             fontWeight: FontWeight.bold),
                       ),
                       onPressed: () async {
-                        // Provider.of<FeedUtils>(context, listen: false)
-                        //     .pickPostImage(context, ImageSource.camera)
-                        //     .whenComplete(() {
-                        //   Provider.of<FeedServices>(context, listen: false)
-                        //       .showPostImage(context);
-                        // });
                         await Provider.of<FeedScreenViewModel>(context,
                                 listen: false)
                             .pickPostImage(context, ImageSource.camera);
-                        //Provider.of<FeedScreenHelpers>(context, listen: false);
                       },
                     ),
                     MaterialButton(
@@ -480,7 +472,7 @@ class FeedScreenHelpers extends ChangeNotifier {
                           onPressed: () async {
                             await Provider.of<FeedScreenViewModel>(context,
                                     listen: false)
-                                .uploadImageToFirebase(context);
+                                .uploadImageToFirebase(context, 'post');
                             editPostSheet(context);
                           },
                         ),
@@ -520,7 +512,6 @@ class FeedScreenHelpers extends ChangeNotifier {
                 ),
                 Container(
                   child: Row(
-                    //mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Column(
                         children: [
@@ -662,8 +653,7 @@ class FeedScreenHelpers extends ChangeNotifier {
                             fontWeight: FontWeight.w600,
                           )),
                       onPressed: () {
-                        Provider.of<GlobalViewModel>(context, listen: false)
-                            .goBack();
+                        Navigator.pop(context);
                       }),
                   MaterialButton(
                       color: constantColors.redColor,

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sailor/sailor.dart';
 import 'package:thesocial/app/ConstantColors.dart';
-import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 import 'package:thesocial/meta/widgets/AltProfileScreenHelpers.dart';
 
 class AltProfileScreen extends StatelessWidget {
@@ -24,7 +23,7 @@ class AltProfileScreen extends StatelessWidget {
             color: constantColors.whiteColor,
           ),
           onPressed: () {
-            Provider.of<GlobalViewModel>(context, listen: false).goBack();
+            Navigator.pop(context);
           },
         ),
         title: RichText(

@@ -33,4 +33,28 @@ class LandingPageViewModel extends ChangeNotifier {
     }
     return null;
   }
+
+  String registerSheetEmailValidator(value) {
+    if (value.isEmpty) return 'please fill the email';
+    return null;
+  }
+
+  String registerSheetPasswordValidator(value) {
+    if (value.isEmpty)
+      return 'please fill the email';
+    else if (value.toString().length < 6)
+      return 'make sure password has minimum 6 characters';
+    return null;
+  }
+
+  String registerSheetUsernameValidator(value) {
+    if (value.isEmpty) return 'please fill the username';
+    return null;
+  }
+
+  Future registerAccount(BuildContext context, String email, String password,
+      String username) async {
+    return firebaseOperations.registerAccount(
+        context, email, password, username);
+  }
 }

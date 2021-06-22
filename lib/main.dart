@@ -1,19 +1,22 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:thesocial/core/ViewModels/AltProfileScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/ChatListScreenViewModel.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
 import 'package:thesocial/core/ViewModels/LandingPageViewModel.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/core/ViewModels/ProfileScreenViewModel.dart';
 import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 import 'package:thesocial/core/services/UploadImage.dart';
-import 'package:thesocial/meta/screens/AltProfileScreen.dart';
 import 'package:thesocial/meta/widgets/AltProfileScreenHelpers.dart';
+import 'package:thesocial/meta/widgets/ChatScreenHelpers.dart';
 import 'package:thesocial/meta/widgets/FeedPostSheets.dart';
 import 'package:thesocial/meta/widgets/Globalwidgets.dart';
 import 'package:thesocial/meta/widgets/LandingPageHelpers.dart';
 import 'package:get/get.dart';
+import 'package:thesocial/meta/widgets/chatListScreenHelpers.dart';
 import 'app/routes.dart';
+import 'core/ViewModels/ChatScreenViewModel.dart';
 import 'core/services/FirebaseOperations.dart';
 import 'meta/widgets/FeedScreenHelpers.dart';
 import 'meta/widgets/ProfileScreenHelpers.dart';
@@ -31,6 +34,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ChatScreenViewModel()),
+        ChangeNotifierProvider(create: (_) => ChatScreenHelpers()),
+        ChangeNotifierProvider(create: (_) => ChatListScreenViewModel()),
+        ChangeNotifierProvider(create: (_) => ChatListScreenHelpers()),
         ChangeNotifierProvider(create: (_) => AltProfileScreenViewModel()),
         ChangeNotifierProvider(create: (_) => AltProfileScreenHelpers()),
         ChangeNotifierProvider(create: (_) => GlobalViewModel()),

@@ -3,21 +3,22 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'package:sailor/sailor.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/app/routes.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
-import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
+import 'package:thesocial/core/models/ChatList.dart';
+import 'package:thesocial/core/models/ChatMsg.dart';
 import 'package:thesocial/core/models/Comment.dart';
 import 'package:thesocial/core/models/Like.dart';
 import 'package:thesocial/core/models/Post.dart';
 import 'package:thesocial/core/models/User.dart';
+import 'package:thesocial/core/models/UserRegister.dart';
 
 class FirebaseOperations extends ChangeNotifier {
   ConstantColors constantColors = ConstantColors();
-  String errorMsg;
+  String loginErrorMsg;
+  String registerErrorMsg;
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore instance = FirebaseFirestore.instance;
@@ -88,9 +89,38 @@ class FirebaseOperations extends ChangeNotifier {
         .snapshots();
   }
 
+  Stream getChatList(String userUid) {
+    return instance
+        .collection('users')
+        .doc(userUid)
+        .collection('chats')
+        .snapshots();
+  }
+
+  Stream getChatMessages(String chatDocUid) {
+    return instance
+        .collection('chats')
+        .doc(chatDocUid)
+        .collection('messages')
+        .orderBy('time')
+        .snapshots();
+  }
+
+  Future addUserToCollection(BuildContext context, dynamic data) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(Provider.of<FeedScreenViewModel>(context, listen: false)
+              .getUserUid)
+          .set(data);
+    } catch (e) {
+      print(e.code);
+    }
+  }
+
   Future logIntoAccount(
       BuildContext context, String email, String password) async {
-    errorMsg = null;
+    loginErrorMsg = null;
     try {
       UserCredential userCredential = await firebaseAuth
           .signInWithEmailAndPassword(email: email, password: password);
@@ -99,56 +129,84 @@ class FirebaseOperations extends ChangeNotifier {
 
       Provider.of<FeedScreenViewModel>(context, listen: false).useruid =
           user.uid;
-      notifyListeners();
       await fetchUserProfileInfo(context);
-      Routes.sailor.navigate(
-        "/HomePage",
-        transitions: [SailorTransition.slide_from_left],
-        transitionDuration: Duration(milliseconds: 600),
-        transitionCurve: Curves.easeOut,
-      );
+      Routes.sailor.navigate("/HomePage");
+      notifyListeners();
       return true;
     } on FirebaseAuthException catch (e) {
       print(e.code);
       switch (e.code) {
         case 'user-not-found':
-          errorMsg = 'this email is not registered';
+          loginErrorMsg = 'this email is not registered';
           break;
         case 'invalid-email':
-          errorMsg = 'this email is invalid';
+          loginErrorMsg = 'this email is invalid';
           break;
         case 'wrong-password':
-          errorMsg = 'password is wrong';
+          loginErrorMsg = 'password is wrong';
           break;
         default:
-          errorMsg = 'some unknown error occured';
+          loginErrorMsg = 'some unknown error occured';
       }
 
-      Get.snackbar(
-        'error while logging in',
-        '$errorMsg',
-        titleText: Text(
-          'error while logging in',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-        ),
-        messageText: Text(
-          '$errorMsg',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-        ),
-        barBlur: 0,
-        duration: Duration(seconds: 4),
-        snackPosition: SnackPosition.BOTTOM,
-        overlayBlur: 0,
-        backgroundColor: constantColors.yellowColor,
-      );
+      showSnackBar(context, loginErrorMsg, constantColors.whiteColor,
+          constantColors.redColor);
       return false;
     } catch (e) {
-      errorMsg = 'some unknown error occured';
+      print(
+          Provider.of<FeedScreenViewModel>(context, listen: false).getUserUid);
       return false;
     }
   }
 
-  Future uploadPostImageToFirebase(BuildContext context) async {
+  Future<bool> registerAccount(BuildContext context, String email,
+      String password, String username) async {
+    registerErrorMsg = null;
+    try {
+      UserCredential userCredential = await firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
+      User user = userCredential.user;
+      Provider.of<FeedScreenViewModel>(context, listen: false).useruid =
+          user.uid;
+      UserRegister newUserRegister = UserRegister(
+        username: username,
+        useremail: email,
+        userimage: Provider.of<FeedScreenViewModel>(context, listen: false)
+            .getAvatarUrl,
+        password: password,
+        useruid: user.uid,
+      );
+      await addUserToCollection(context, newUserRegister.toMap());
+      await logIntoAccount(context, email, password);
+      Provider.of<FeedScreenViewModel>(context, listen: false).avatarUrl = null;
+      Provider.of<FeedScreenViewModel>(context, listen: false).avatarImage =
+          null;
+      return true;
+    } on FirebaseAuthException catch (e) {
+      print(e.code);
+      switch (e.code) {
+        case 'invalid-email':
+          registerErrorMsg = 'please enter a valid email';
+          break;
+        case 'email-already-in-use':
+          registerErrorMsg = 'this email is already in use';
+          break;
+        default:
+          registerErrorMsg = 'some unknown error occured';
+      }
+      showSnackBar(
+        context,
+        registerErrorMsg,
+        constantColors.whiteColor,
+        constantColors.redColor,
+      );
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future uploadPostImageToFirebase(BuildContext context, String useCase) async {
     final provider = Provider.of<FeedScreenViewModel>(context, listen: false);
     print('form service');
     UploadTask imageUploadTask;
@@ -156,14 +214,17 @@ class FirebaseOperations extends ChangeNotifier {
         .ref()
         .child('userPostImage/${TimeOfDay.now()}');
 
-    imageUploadTask = imageReference.putFile(provider.getPostImage);
+    imageUploadTask = imageReference.putFile(
+        useCase == 'avatar' ? provider.getAvatarImage : provider.getPostImage);
 
     await imageUploadTask.whenComplete(() {
       print('Image uploaded');
     });
 
     String url = await imageReference.getDownloadURL();
-    //print('urloo' + url);
+    if (useCase == 'avatar') {
+      Provider.of<FeedScreenViewModel>(context, listen: false).avatarUrl = url;
+    }
     Provider.of<FeedScreenViewModel>(context, listen: false).postImageUrl = url;
     Navigator.pop(context);
   }
@@ -180,6 +241,8 @@ class FirebaseOperations extends ChangeNotifier {
         .collection('posts')
         .doc(postData['caption'])
         .set(newPost.toMap());
+    Provider.of<FeedScreenViewModel>(context, listen: false).avatarImage = null;
+    Provider.of<FeedScreenViewModel>(context, listen: false).avatarUrl = null;
     Navigator.pop(context);
     Navigator.pop(context);
   }
@@ -200,12 +263,8 @@ class FirebaseOperations extends ChangeNotifier {
 
   Future logoutViaEmail(BuildContext context) async {
     await firebaseAuth.signOut();
-    Routes.sailor.navigate(
-      "/LandingPage",
-      transitions: [SailorTransition.slide_from_left],
-      transitionDuration: Duration(milliseconds: 600),
-      transitionCurve: Curves.easeOut,
-    );
+    Provider.of<FeedScreenViewModel>(context, listen: false).useruid = null;
+    Routes.sailor.navigate("/LandingPage");
   }
 
   Future addLike(BuildContext context, String caption) async {
@@ -361,6 +420,93 @@ class FirebaseOperations extends ChangeNotifier {
 
   Future deletePost(BuildContext context, String caption) async {
     await instance.collection('posts').doc(caption).delete();
-    Provider.of<GlobalViewModel>(context, listen: false).goBack();
+    Navigator.pop(context);
+    Navigator.pop(context);
+  }
+
+  Future deleteChatList(String chatDocUid, String myUid, String userUid) async {
+    await instance
+        .collection('chats')
+        .doc(chatDocUid)
+        .collection('messages')
+        .get()
+        .then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((QueryDocumentSnapshot documentSnapshot) {
+        documentSnapshot.reference.delete();
+      });
+    });
+
+    await instance
+        .collection('users')
+        .doc(myUid)
+        .collection('chats')
+        .doc(userUid)
+        .delete();
+
+    await instance
+        .collection('users')
+        .doc(userUid)
+        .collection('chats')
+        .doc(myUid)
+        .delete();
+  }
+
+  Future addChat(
+      BuildContext context,
+      String profileImage,
+      String username,
+      String userUid,
+      String myUid,
+      TextEditingController _chatController,
+      String chatDocId) async {
+    if (_chatController.text.length == 0) return;
+    FocusScopeNode currentFocus = FocusScope.of(context);
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.unfocus();
+    }
+    var provider = Provider.of<FeedScreenViewModel>(context, listen: false);
+    ChatMsg newChatMsg =
+        ChatMsg(message: _chatController.text, from: myUid, to: userUid);
+    ChatList chatListForMe = ChatList(
+      username: username,
+      useruid: userUid,
+      userimage: profileImage,
+      chatDocId: chatDocId,
+    );
+    ChatList chatListForOther = ChatList(
+      username: provider.getUserName,
+      useruid: provider.getUserUid,
+      userimage: provider.getUserImage,
+      chatDocId: chatDocId,
+    );
+    _chatController.clear();
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatDocId)
+        .collection('messages')
+        .add(newChatMsg.toMap());
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(myUid)
+        .collection('chats')
+        .doc(userUid)
+        .set(chatListForMe.toMap());
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userUid)
+        .collection('chats')
+        .doc(myUid)
+        .set(chatListForOther.toMap());
+  }
+
+  Future deleteChatMessage(String chatDocUid, String docId) async {
+    await instance
+        .collection('chats')
+        .doc(chatDocUid)
+        .collection('messages')
+        .doc(docId)
+        .delete();
   }
 }

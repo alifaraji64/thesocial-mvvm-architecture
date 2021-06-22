@@ -2,9 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
+import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
 import 'package:thesocial/core/ViewModels/LandingPageViewModel.dart';
+import 'package:thesocial/core/services/FirebaseOperations.dart';
 
 class LandingPageHelpers extends ChangeNotifier {
   ConstantColors constantColors = ConstantColors();
@@ -114,6 +117,81 @@ class LandingPageHelpers extends ChangeNotifier {
     );
   }
 
+  Future showAvatarImage(BuildContext context) {
+    return showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) {
+          return Container(
+              height: MediaQuery.of(context).size.height * 0.5,
+              width: MediaQuery.of(context).size.width,
+              color: constantColors.blueGreyColor,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 140),
+                    child: Divider(
+                      thickness: 4.0,
+                      color: constantColors.whiteColor,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                      height: 250.0,
+                      width: 350.0,
+                      child: Provider.of<FeedScreenViewModel>(context,
+                                      listen: true)
+                                  .getAvatarImage !=
+                              null
+                          ? Image.file(
+                              Provider.of<FeedScreenViewModel>(
+                                context,
+                                listen: true,
+                              ).getAvatarImage,
+                              fit: BoxFit.contain,
+                            )
+                          : null),
+                  SizedBox(height: 10),
+                  Container(
+                    child: Row(
+                      children: [
+                        MaterialButton(
+                          child: Text(
+                            'Reselect',
+                            style: TextStyle(
+                              color: constantColors.whiteColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                            avatarSelectOptions(context);
+                          },
+                        ),
+                        MaterialButton(
+                          color: constantColors.blueColor,
+                          child: Text(
+                            'Confirm Image',
+                            style: TextStyle(
+                              color: constantColors.whiteColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onPressed: () async {
+                            await Provider.of<FeedScreenViewModel>(context,
+                                    listen: false)
+                                .uploadImageToFirebase(context, 'avatar');
+                          },
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ));
+        });
+  }
+
   Widget privacyText(BuildContext context) {
     return Positioned(
         top: 740,
@@ -186,7 +264,10 @@ class LandingPageHelpers extends ChangeNotifier {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        signInSheet(context);
+                        avatarSelectOptions(context);
+                      },
                     ),
                   ],
                 )
@@ -374,6 +455,225 @@ class LandingPageHelpers extends ChangeNotifier {
                 },
               )
             ]),
+          );
+        });
+  }
+
+  Future signInSheet(BuildContext context) {
+    TextEditingController _emailController = TextEditingController();
+    TextEditingController _usernameController = TextEditingController();
+    TextEditingController _passwordController = TextEditingController();
+    GlobalKey<FormState> _emailKey = GlobalKey<FormState>();
+    GlobalKey<FormState> _usernameKey = GlobalKey<FormState>();
+    GlobalKey<FormState> _passwordKey = GlobalKey<FormState>();
+
+    return showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.6,
+            decoration: BoxDecoration(
+                color: constantColors.blueGreyColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15.0),
+                  topRight: Radius.circular(15.0),
+                )),
+            child: Column(children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 140),
+                child: Divider(
+                  thickness: 4.0,
+                  color: constantColors.whiteColor,
+                ),
+              ),
+              CircleAvatar(
+                backgroundColor: constantColors.redColor,
+                radius: 70.0,
+                backgroundImage: Provider.of<FeedScreenViewModel>(context,
+                                listen: false)
+                            .getAvatarImage !=
+                        null
+                    ? FileImage(
+                        Provider.of<FeedScreenViewModel>(context, listen: true)
+                            .getAvatarImage)
+                    : null,
+                child: Provider.of<FeedScreenViewModel>(context, listen: true)
+                            .getAvatarImage !=
+                        null
+                    ? null
+                    : Icon(
+                        FontAwesomeIcons.userCircle,
+                        size: 80,
+                      ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Form(
+                  key: _emailKey,
+                  child: TextFormField(
+                    validator: Provider.of<LandingPageViewModel>(context,
+                            listen: false)
+                        .registerSheetEmailValidator,
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter Email ...',
+                      hintStyle: TextStyle(
+                        color: constantColors.whiteColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: constantColors.whiteColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Form(
+                  key: _usernameKey,
+                  child: TextFormField(
+                    validator: Provider.of<LandingPageViewModel>(context,
+                            listen: false)
+                        .registerSheetUsernameValidator,
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter Username ...',
+                      hintStyle: TextStyle(
+                        color: constantColors.whiteColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: constantColors.whiteColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Form(
+                  key: _passwordKey,
+                  child: TextFormField(
+                    obscureText: true,
+                    validator: Provider.of<LandingPageViewModel>(context,
+                            listen: false)
+                        .registerSheetPasswordValidator,
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter Password ...',
+                      hintStyle: TextStyle(
+                        color: constantColors.whiteColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.0,
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: constantColors.whiteColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              FloatingActionButton(
+                  backgroundColor: constantColors.redColor,
+                  child: Icon(
+                    FontAwesomeIcons.check,
+                    color: constantColors.whiteColor,
+                  ),
+                  onPressed: () async {
+                    FocusScopeNode currentFocus = FocusScope.of(context);
+                    currentFocus.unfocus();
+                    if (_emailKey.currentState.validate() &&
+                        _usernameKey.currentState.validate() &&
+                        _passwordKey.currentState.validate()) {
+                      await Provider.of<FirebaseOperations>(context,
+                              listen: false)
+                          .registerAccount(
+                              context,
+                              _emailController.text,
+                              _passwordController.text,
+                              _usernameController.text);
+                    }
+                  })
+            ]),
+          );
+        });
+  }
+
+  Future avatarSelectOptions(BuildContext context) {
+    return showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.1,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+                color: constantColors.blueGreyColor,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(15.0),
+                  topRight: Radius.circular(15.0),
+                )),
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 140),
+                  child: Divider(
+                    thickness: 4.0,
+                    color: constantColors.whiteColor,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    MaterialButton(
+                      color: constantColors.blueColor,
+                      child: Text(
+                        'Camera',
+                        style: TextStyle(
+                          color: constantColors.whiteColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () async {
+                        await Provider.of<FeedScreenViewModel>(context,
+                                listen: false)
+                            .pickUserAvatar(context, ImageSource.camera);
+                        showAvatarImage(context);
+                      },
+                    ),
+                    MaterialButton(
+                      color: constantColors.blueColor,
+                      child: Text(
+                        'Gallery',
+                        style: TextStyle(
+                          color: constantColors.whiteColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: () async {
+                        await Provider.of<FeedScreenViewModel>(context,
+                                listen: false)
+                            .pickUserAvatar(context, ImageSource.gallery);
+                        showAvatarImage(context);
+                      },
+                    )
+                  ],
+                ),
+              ],
+            ),
           );
         });
   }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:thesocial/app/ConstantColors.dart';
 import 'package:thesocial/core/ViewModels/FeedScreenViewModel.dart';
+import 'package:thesocial/core/ViewModels/GlobalViewModel.dart';
 
 class GlobalWidgets extends ChangeNotifier {
   final ConstantColors constantColors = ConstantColors();
@@ -88,15 +89,15 @@ class GlobalWidgets extends ChangeNotifier {
     return StreamBuilder(
         stream: Provider.of<FeedScreenViewModel>(context, listen: false)
             .followingStatus(context, userUid),
-        builder: (context, snapshot_v2) {
-          if (snapshot_v2.connectionState == ConnectionState.waiting) {
+        builder: (context, snapshotV2) {
+          if (snapshotV2.connectionState == ConnectionState.waiting) {
             return Center(
               child: CircularProgressIndicator(),
             );
           } else {
             //user is not followd
             //String snapShotType = snapshot.runtimeType.toString();
-            if (!snapshot_v2.hasData || !snapshot_v2.data.exists)
+            if (!snapshotV2.hasData || !snapshotV2.data.exists)
               return MaterialButton(
                 color: constantColors.blueColor,
                 child: Text(
@@ -128,6 +129,76 @@ class GlobalWidgets extends ChangeNotifier {
                 },
               );
           }
+        });
+  }
+
+  Future showFollowingsSheet(BuildContext context, dynamic snapshot) {
+    return showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) {
+          return Container(
+              height: MediaQuery.of(context).size.height * 0.4,
+              width: MediaQuery.of(context).size.width,
+              color: constantColors.blueGreyColor,
+              child: SingleChildScrollView(
+                child: Column(
+                    children: snapshot.data.docs
+                        .map<Widget>((DocumentSnapshot documentSnapshot) {
+                  return ListTile(
+                    leading: GestureDetector(
+                      child: CircleAvatar(
+                        backgroundColor: constantColors.darkColor,
+                        backgroundImage:
+                            NetworkImage(documentSnapshot.get('userimage')),
+                      ),
+                      onTap: () {
+                        Provider.of<GlobalViewModel>(
+                          context,
+                          listen: false,
+                        ).redirect(
+                          context,
+                          '/altProfile',
+                          uid: documentSnapshot.get('useruid'),
+                        );
+                      },
+                    ),
+                    title: Text(
+                      '${documentSnapshot.get("username")}',
+                      style: TextStyle(
+                        color: constantColors.whiteColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${documentSnapshot.get("useremail")}',
+                      style: TextStyle(
+                        color: constantColors.yellowColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    trailing: Container(
+                        width: 100,
+                        //not showing the follow button for the user itself
+                        child: documentSnapshot.get('useruid') !=
+                                Provider.of<FeedScreenViewModel>(context,
+                                        listen: false)
+                                    .getUserUid
+                            ? Provider.of<GlobalWidgets>(context, listen: false)
+                                .conditionalFollowButtons(
+                                context,
+                                documentSnapshot,
+                                documentSnapshot.get('useruid'),
+                              )
+                            : Container(
+                                width: 0,
+                                height: 0,
+                              )),
+                  );
+                }).toList()),
+              ));
         });
   }
 }

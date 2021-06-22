@@ -93,9 +93,9 @@ class ProfileScreenHelpers extends ChangeNotifier {
                                   .profileDetailBox('Followers',
                                       snapshot.data.docs.length.toString()),
                               onTap: () {
-                                // Provider.of<GlobalWidgets>(context,
-                                //         listen: false)
-                                //     .showFollowingsSheet(context, snapshot);
+                                Provider.of<GlobalWidgets>(context,
+                                        listen: false)
+                                    .showFollowingsSheet(context, snapshot);
                               },
                             );
                           }
@@ -121,9 +121,9 @@ class ProfileScreenHelpers extends ChangeNotifier {
                                   .profileDetailBox('Followings',
                                       snapshot.data.docs.length.toString()),
                               onTap: () {
-                                // Provider.of<GlobalWidgets>(context,
-                                //         listen: false)
-                                //     .showFollowingsSheet(context, snapshot);
+                                Provider.of<GlobalWidgets>(context,
+                                        listen: false)
+                                    .showFollowingsSheet(context, snapshot);
                               },
                             );
                           }
