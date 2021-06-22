@@ -1,6 +1,6 @@
 # thesocial
 
-the social is a social media project written in flutter+firebase stack with the help of MVVM architecture
+thesocial is a social media project built with flutter+firebase stack with the help of MVVM architecture
 
 ### functionalities:
 - authentication
