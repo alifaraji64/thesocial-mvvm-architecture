@@ -1,16 +1,30 @@
 # thesocial
 
-A new Flutter project.
+the social is a social media project written in flutter+firebase stack with the help of MVVM architecture
 
-## Getting Started
+### functionalities:
+- authentication
+- create post
+- create profile
+- like post
+- comment on posts
+- chat with users
+- visit the profile of each user
+- deleting the chat(one by one and also all at once)
+- ability to follow and unfollow users
+- give reward to post
 
-This project is a starting point for a Flutter application.
+### libraries:
+- provider(state managment)
+- sailor(router)
+- firebase
+- image_picker
 
-A few resources to get you started if this is your first Flutter project:
+### sample images:
+<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/structure.PNG'>
+<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-11.PNG'>
+<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-12.PNG'>
+<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-5.PNG'>
+<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-9.PNG'>
+<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-3.PNG'>
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
