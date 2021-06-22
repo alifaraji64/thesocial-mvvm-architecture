@@ -21,10 +21,11 @@ the social is a social media project written in flutter+firebase stack with the 
 - image_picker
 
 ### sample images:
-<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/structure.PNG' width='140'>
-<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-11.PNG' width='140'>
-<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-12.PNG' width='140'>
-<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-5.PNG' width='140'>
-<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-9.PNG' width='140'>
-<img src='https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-3.jpg' width='140'>
+![img-1](https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/structure.PNG)
+![img-2](https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-11.PNG)
+![img-3](https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-12.PNG)
+![img-4](https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-5.PNG)
+![img-5](https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-9.PNG)
+![img-6](https://github.com/alifaraji64/thesocial-mvvm-architecture/blob/master/assets/day-3.jpg)
+
 
